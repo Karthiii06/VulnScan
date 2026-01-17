@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerability Scan Report - {{ scan.scan.target_ip }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .page-break { page-break-after: always; }
+            body { -webkit-print-color-adjust: exact; }
+        }
+        .severity-critical { background-color: #dc2626; }
+        .severity-high { background-color: #ea580c; }
+        .severity-medium { background-color: #ca8a04; }
+        .severity-low { background-color: #2563eb; }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <!-- Header -->
+        <div class="border-b-2 border-gray-300 pb-6 mb-8">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Vulnerability Scan Report</h1>
+                    <p class="text-gray-600 mt-2">Comprehensive security assessment report</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500">Generated on</div>
+                    <div class="font-semibold">{{ timestamp }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Info -->
+        <div class="mb-10">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Scan Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500">Target IP</div>
+                    <div class="text-lg font-semibold">{{ scan.scan.target_ip }}</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500">Scan Name</div>
+                    <div class="text-lg font-semibold">{{ scan.scan.scan_name }}</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500">Scan Date</div>
+                    <div class="text-lg font-semibold">
+                        {% if scan.scan.start_time %}
+                            {{ scan.scan.start_time.strftime('%Y-%m-%d %H:%M:%S') }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500">Status</div>
+                    <div class="text-lg font-semibold capitalize">{{ scan.scan.status }}</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500">Duration</div>
+                    <div class="text-lg font-semibold">
+                        {% if scan.scan.duration %}
+                            {{ "%.1f"|format(scan.scan.duration) }} seconds
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm text-gray-500">Report ID</div>
+                    <div class="text-lg font-semibold font-mono text-sm">{{ scan.scan.id[:8] }}...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="mb-10">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Executive Summary</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                <div class="bg-gray-100 p-6 rounded-lg text-center">
+                    <div class="text-3xl font-bold text-gray-900">{{ scan.summary.total_vulnerabilities }}</div>
+                    <div class="text-gray-600 mt-2">Total Findings</div>
+                </div>
+                <div class="bg-red-50 p-6 rounded-lg text-center">
+                    <div class="text-3xl font-bold text-red-700">{{ scan.summary.critical }}</div>
+                    <div class="text-red-600 mt-2">Critical</div>
+                </div>
+                <div class="bg-orange-50 p-6 rounded-lg text-center">
+                    <div class="text-3xl font-bold text-orange-700">{{ scan.summary.high }}</div>
+                    <div class="text-orange-600 mt-2">High</div>
+                </div>
+                <div class="bg-yellow-50 p-6 rounded-lg text-center">
+                    <div class="text-3xl font-bold text-yellow-700">{{ scan.summary.medium }}</div>
+                    <div class="text-yellow-600 mt-2">Medium</div>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-lg text-center">
+                    <div class="text-3xl font-bold text-blue-700">{{ scan.summary.low }}</div>
+                    <div class="text-blue-600 mt-2">Low</div>
+                </div>
+            </div>
+
+            <!-- Risk Distribution Chart (Visual) -->
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-700 mb-4">Risk Distribution</h3>
+                <div class="h-6 bg-gray-200 rounded-full overflow-hidden">
+                    {% set total = scan.summary.total_vulnerabilities %}
+                    {% if total > 0 %}
+                        {% set critical_width = (scan.summary.critical / total * 100) %}
+                        {% set high_width = (scan.summary.high / total * 100) %}
+                        {% set medium_width = (scan.summary.medium / total * 100) %}
+                        {% set low_width = (scan.summary.low / total * 100) %}
+                        
+                        <div class="h-full flex">
+                            {% if critical_width > 0 %}
+                            <div class="severity-critical h-full" style="width: {{ critical_width }}%"></div>
+                            {% endif %}
+                            {% if high_width > 0 %}
+                            <div class="severity-high h-full" style="width: {{ high_width }}%"></div>
+                            {% endif %}
+                            {% if medium_width > 0 %}
+                            <div class="severity-medium h-full" style="width: {{ medium_width }}%"></div>
+                            {% endif %}
+                            {% if low_width > 0 %}
+                            <div class="severity-low h-full" style="width: {{ low_width }}%"></div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="flex justify-between text-xs text-gray-600 mt-2">
+                    <div>Critical: {{ scan.summary.critical }}</div>
+                    <div>High: {{ scan.summary.high }}</div>
+                    <div>Medium: {{ scan.summary.medium }}</div>
+                    <div>Low: {{ scan.summary.low }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Findings -->
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Detailed Findings</h2>
+            
+            {% for severity in ['critical', 'high', 'medium', 'low'] %}
+                {% if scan.vulnerabilities[severity] %}
+                <div class="mb-8 {% if not loop.last %}page-break{% endif %}">
+                    <h3 class="text-lg font-medium text-gray-700 mb-4 flex items-center">
+                        <span class="px-3 py-1 rounded-full text-white severity-{{ severity }} mr-3">
+                            {{ severity|title }}
+                        </span>
+                        {{ scan.vulnerabilities[severity]|length }} Findings
+                    </h3>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Port</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vulnerability</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remediation</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for vuln in scan.vulnerabilities[severity] %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-mono font-medium text-gray-900">{{ vuln.port }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ vuln.service|default('N/A') }}</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ vuln.name }}</div>
+                                        {% if vuln.cve_id %}
+                                        <div class="text-xs text-gray-500 mt-1">CVE: {{ vuln.cve_id }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900">{{ vuln.description }}</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900">{{ vuln.remediation }}</div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-12 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+            <p class="mb-2">Report generated by <span class="font-semibold">Vulnerability Scanner v1.0.0</span></p>
+            <p>This report contains confidential information. Distribution is restricted to authorized personnel only.</p>
+            <p class="mt-4">
+                © {{ timestamp.split(' ')[0].split('-')[0] if timestamp else '2024' }} Security Team. All rights reserved.
+            </p>
+        </div>
+
+        <!-- Print Button -->
+        <div class="mt-8 text-center no-print">
+            <button onclick="window.print()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                📄 Print Report
+            </button>
+        </div>
+    </div>
+</body>
+</html>

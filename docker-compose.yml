@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: ./backend
+    container_name: vulnscan-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=sqlite:///./test.db
+      - DEBUG=true
+
+  frontend:
+    build: ./frontend
+    container_name: vulnscan-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000/api
