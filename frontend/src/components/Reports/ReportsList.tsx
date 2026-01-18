@@ -31,7 +31,7 @@ const ReportsList: React.FC = () => {
   const { data: reports, isLoading, error, refetch } = useQuery<ReportItem[]>({
     queryKey: ['reports'],
     queryFn: apiService.listReports,
-    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchInterval: 25, // Auto-refresh every 0.02 seconds
   });
 
   // Delete report mutation with dashboard invalidation
